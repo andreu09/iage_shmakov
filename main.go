@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -41,8 +42,8 @@ type DataTest3 []struct {
 
 // Структура данных результата Test3
 type DataTest3Result struct {
-	X string `json:"x"`
-	Y string `json:"y"`
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 // Подключение к Redis
@@ -113,7 +114,8 @@ func Test1(w http.ResponseWriter, r *http.Request) {
 
 		resultData := map[string]string{response.Key: strconv.Itoa(int(incr.Val()))}
 		resultJsonData, _ := json.Marshal(resultData)
-		fmt.Println(string(resultJsonData))
+		io.WriteString(w, string(resultJsonData))
+
 	}
 }
 
@@ -147,7 +149,8 @@ func Test2(w http.ResponseWriter, r *http.Request) {
 	hmac512.Write([]byte(response.S))
 
 	resultData := base64.StdEncoding.EncodeToString(hmac512.Sum(nil))
-	fmt.Printf(resultData)
+
+	io.WriteString(w, resultData)
 }
 
 /*
@@ -184,15 +187,12 @@ func Test3(w http.ResponseWriter, r *http.Request) {
 
 	str += "\r\n"
 
-	fmt.Println("[Клиент] отправляются данные: ", str)
-
 	// Подключаемся к сокету
 	conn, _ := net.Dial("tcp", "127.0.0.1:8081")
 	// Отправляем строку на сервер
 	fmt.Fprintf(conn, str+" ")
 	// Слушаем ответ от сервера
 	message, _ := bufio.NewReader(conn).ReadString(' ')
-	fmt.Println("[Клиент] сервер вернул данные: ", message)
 	// Удаляем лишние пробелы
 	messageTrim := strings.TrimSpace(message)
 	// Удаляем лишние спецсимволы
@@ -200,9 +200,12 @@ func Test3(w http.ResponseWriter, r *http.Request) {
 	// Разделяем числа по запятой
 	messageResult := strings.Split(messageTrimReplace, ",")
 
-	resultResponse := DataTest3Result{messageResult[0], messageResult[1]}
+	x, _ := strconv.Atoi(messageResult[0])
+	y, _ := strconv.Atoi(messageResult[1])
+
+	resultResponse := DataTest3Result{x, y}
 	resultJsonData, _ := json.Marshal(resultResponse)
 
-	fmt.Println("[Клиент] результат: ", string(resultJsonData))
+	io.WriteString(w, string(resultJsonData))
 
 }

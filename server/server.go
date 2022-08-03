@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -39,7 +38,6 @@ func handleIncomingRequest(conn net.Conn) {
 
 	// Принимаем данные от клиента
 	message, _ := bufio.NewReader(conn).ReadString(' ')
-	fmt.Print("[Сервер] Принял данные: ", message)
 	// Убираем лишние пробелы
 	message1 := strings.ReplaceAll(message, "\r\n", ",")
 	// Разделяем числа по запятой
@@ -58,8 +56,6 @@ func handleIncomingRequest(conn net.Conn) {
 	}
 
 	resultData += "\r\n"
-
-	fmt.Print("[Сервер] обработал данные: " + resultData)
 
 	conn.Write([]byte(resultData))
 
